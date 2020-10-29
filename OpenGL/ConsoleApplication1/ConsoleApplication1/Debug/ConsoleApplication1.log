@@ -1,0 +1,10 @@
+﻿  OpenGLTest.cpp
+OpenGLTest.obj : error LNK2019: _glfwInit_main 함수에서 참조되는 확인할 수 없는 외부 기호
+OpenGLTest.obj : error LNK2019: _glfwTerminate_main 함수에서 참조되는 확인할 수 없는 외부 기호
+OpenGLTest.obj : error LNK2019: _glfwCreateWindow_main 함수에서 참조되는 확인할 수 없는 외부 기호
+OpenGLTest.obj : error LNK2019: _glfwDestroyWindow_main 함수에서 참조되는 확인할 수 없는 외부 기호
+OpenGLTest.obj : error LNK2019: _glfwWindowShouldClose_main 함수에서 참조되는 확인할 수 없는 외부 기호
+OpenGLTest.obj : error LNK2019: _glfwPollEvents_main 함수에서 참조되는 확인할 수 없는 외부 기호
+OpenGLTest.obj : error LNK2019: _glfwMakeContextCurrent_main 함수에서 참조되는 확인할 수 없는 외부 기호
+C:\Users\HYOTAEK\Desktop\아주대\컴퓨터그래픽스\OpenGL\ConsoleApplication1\\lib\glfw3.lib : warning LNK4272: 'x64' 라이브러리 컴퓨터 종류가 'x86' 대상 컴퓨터 종류와 충돌합니다.
+C:\Users\HYOTAEK\Desktop\아주대\컴퓨터그래픽스\OpenGL\ConsoleApplication1\Debug\ConsoleApplication1.exe : fatal error LNK1120: 7개의 확인할 수 없는 외부 참조입니다.
