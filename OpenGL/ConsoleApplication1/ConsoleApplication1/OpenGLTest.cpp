@@ -52,7 +52,7 @@ glm::vec3 sceneCenter = glm::vec3(0, 0, 0);
 float cameraYaw = 0.f;
 float cameraPitch = 0.f;
 int lastX=0, lastY=0;
-float cameraFov = 60.f;//필드오브뷰 카메라가 보는 각도, 크면 많이보이공ㅇ
+float cameraFov = 60.f;
 
 Program program;
 
@@ -131,16 +131,20 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mod) {
     }
 }
 
+float pitchAngleN = -3.141592 / 2 + 0.01f;
+float pitchAngleP = 3.141592 / 2 - 0.01f;
 
 
  void cursorMotionCallback(GLFWwindow* window, double xpos, double ypos) {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
         if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-            cameraFov += (ypos - lastY) / 300;
+            //cameraFov += (ypos - lastY) / 300;
+            cameraDistance *= pow(1.001, ypos-lastY);
+            lastY = int(ypos);
         }
         else {
-        cameraPitch+= (ypos - lastY) / 300; //300픽셀 움직이면 1라디안
-        cameraPitch = glm::clamp(cameraPitch, -2.f, 2.f); // 제한 걸어두는거
+        cameraPitch+= (ypos - lastY) / 300;
+        cameraPitch = glm::clamp(cameraPitch, pitchAngleN, pitchAngleP);
         cameraYaw -= (xpos - lastX) / 300;
         lastX = int(xpos);
         lastY = int(ypos);
