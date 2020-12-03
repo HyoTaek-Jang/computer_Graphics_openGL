@@ -1,18 +1,35 @@
-﻿//201721070 장효택 컴퓨터그래픽스 과제 2. Rotating Bunny
+﻿//201721070 장효택 컴퓨터그래픽스 과제 3. Lighting and Shadowing
 
 
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include "toys.h"
+#include <glm/glm.hpp>
 #include <vector>
 #define GLM_EXPERIMENTAL
 #include <j3a.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+GLuint vertexArray = 0;
+GLuint triBuffer = 0;
+GLuint vao = 0;
+GLuint elementArray = 0;
+GLuint normalVBO = 0;
+float cameraDistance = 5;
+glm::vec3 sceneCenter = glm::vec3(0, 0, 0);
+float cameraYaw = 0.f;
+float cameraPitch = 0.f;
+int lastX = 0, lastY = 0;
+float cameraFov = 60.f;
 
+
+
+Program program;
+
+using namespace glm;
+using namespace std;
 
 void render(GLFWwindow* window);
 void init();
@@ -42,26 +59,10 @@ int main()
 }
 
 
-GLuint triBuffer = 0;
-GLuint vertexArray = 0;
-GLuint vao = 0;
-GLuint elementArray = 0;
-GLuint normalVBO=0;
-float cameraDistance = 3;
-glm::vec3 sceneCenter = glm::vec3(0, 0, 0);
-float cameraYaw = 0.f;
-float cameraPitch = 0.f;
-int lastX=0, lastY=0;
-float cameraFov = 60.f;
-
-Program program;
-
-using namespace glm;
-using namespace std;
 
 void init() {
 
-    loadJ3A("bunny.j3a");
+    loadJ3A("teaPot.j3a");
     program.loadShaders("shader.vert", "shader.frag");
 
     glGenBuffers(1, &triBuffer);
@@ -89,7 +90,6 @@ void init() {
     glEnable(GL_FRAMEBUFFER_SRGB); //SRGB로 보여줘!
 }
 
-float rotAngle = 0;
 
 void render(GLFWwindow* window) {
     int w, h;
@@ -97,34 +97,51 @@ void render(GLFWwindow* window) {
     glViewport(0, 0, w, h);
     glClearColor(0, 0, 0.5, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glUseProgram(program.programID);
-    glBindVertexArray(vertexArray);
 
+    GLuint loc = glGetUniformLocation(program.programID, "projMat");
     mat4 projMat = perspective(cameraFov * 3.141592f / 180, w / float(h), 0.01f, 100.f);
+    glUniformMatrix4fv(loc, 1, 0, value_ptr(projMat));
 
+    loc = glGetUniformLocation(program.programID, "viewMat");
     vec3 cameraPosition = vec3(0,0,cameraDistance);
     cameraPosition = vec3(rotate(cameraPitch, vec3(-1, 0, 0)) * vec4(cameraPosition, 1));
     cameraPosition = vec3(rotate(cameraYaw, vec3(0, 1, 0)) * vec4(cameraPosition, 1));
     mat4 viewMat = lookAt(cameraPosition, sceneCenter, vec3(0, 1, 0));
-
-    GLuint loc = glGetUniformLocation(program.programID, "cameraPos");
-    glUniform3fv(loc, 1, value_ptr(cameraPosition));
-
-    rotAngle += 0.1 / 180.f * 3.141592;
-    loc = glGetUniformLocation(program.programID, "modelMat");
-
-    mat4 rotMat = rotate(rotAngle, glm::vec3(0, 1, 0));
-   // glUniformMatrix4fv(loc, 1, 0, value_ptr(rotMat));
-
-    glUniformMatrix4fv(loc, 1, 0, value_ptr(rotate(90/180.f*3.141592f,vec3(1,0,0))));
-   
-    loc = glGetUniformLocation(program.programID, "viewMat");
     glUniformMatrix4fv(loc, 1, 0, value_ptr(viewMat));
 
-    loc = glGetUniformLocation(program.programID, "projMat");
-    glUniformMatrix4fv(loc, 1, 0, value_ptr(projMat));
+    vec3 lightColor = vec3(1, 1, 1);
+    vec3 ambientLightColor = vec3(0.1, 0.09, 0.03);
+    vec4 diffusecolor = vec4(0.45, 1, 0.7, 1);
+    vec3 lightPos = vec3(3, 3, 3);
+    float shineness = 10;
+    vec4 specularMaterial = vec4(1);
 
+    loc = glGetUniformLocation(program.programID, "cameraPos");
+    glUniform3fv(loc, 1, value_ptr(cameraPosition));
+
+    loc = glGetUniformLocation(program.programID, "shineness");
+    glUniform1f(loc, shineness);
+
+    loc = glGetUniformLocation(program.programID, "diffusecolor");
+    glUniform4fv(loc, 1, value_ptr(diffusecolor));
+
+    loc = glGetUniformLocation(program.programID, "lightPos");
+    glUniform3fv(loc, 1, value_ptr(lightPos));
+
+    loc = glGetUniformLocation(program.programID, "lightColor");
+    glUniform3fv(loc, 1, value_ptr(lightColor));
     
+    loc = glGetUniformLocation(program.programID, "specularMaterial");
+    glUniform4fv(loc, 1, value_ptr(specularMaterial));
+
+    loc = glGetUniformLocation(program.programID, "ambientLightColor");
+    glUniform3fv(loc, 1, value_ptr(ambientLightColor));
+
+
+
+    glBindVertexArray(vertexArray);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArray);
     glDrawElements(GL_TRIANGLES, nTriangles[0] * 3, GL_UNSIGNED_INT, 0);
     glfwSwapBuffers(window);
