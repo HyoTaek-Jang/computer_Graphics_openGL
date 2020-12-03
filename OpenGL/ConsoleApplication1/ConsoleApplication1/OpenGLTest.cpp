@@ -46,7 +46,7 @@ GLuint triBuffer = 0;
 GLuint vertexArray = 0;
 GLuint vao = 0;
 GLuint elementArray = 0;
-int count = 0;
+GLuint normalVBO=0;
 float cameraDistance = 3;
 glm::vec3 sceneCenter = glm::vec3(0, 0, 0);
 float cameraYaw = 0.f;
@@ -74,10 +74,19 @@ void init() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+    glGenBuffers(1, &normalVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+    glBufferData(GL_ARRAY_BUFFER, nVertices[0] * sizeof(glm::vec3), normals[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
     glGenBuffers(1, &elementArray);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArray);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, nTriangles[0] * sizeof(glm::u32vec3), triangles[0], GL_STATIC_DRAW);
 
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_FRAMEBUFFER_SRGB); //SRGB로 보여줘!
 }
 
 float rotAngle = 0;
@@ -87,7 +96,7 @@ void render(GLFWwindow* window) {
     glfwGetFramebufferSize(window, &w, &h);
     glViewport(0, 0, w, h);
     glClearColor(0, 0, 0.5, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(program.programID);
     glBindVertexArray(vertexArray);
 
@@ -98,9 +107,11 @@ void render(GLFWwindow* window) {
     cameraPosition = vec3(rotate(cameraYaw, vec3(0, 1, 0)) * vec4(cameraPosition, 1));
     mat4 viewMat = lookAt(cameraPosition, sceneCenter, vec3(0, 1, 0));
 
+    GLuint loc = glGetUniformLocation(program.programID, "cameraPos");
+    glUniform3fv(loc, 1, value_ptr(cameraPosition));
 
     rotAngle += 0.1 / 180.f * 3.141592;
-    GLuint loc = glGetUniformLocation(program.programID, "modelMat");
+    loc = glGetUniformLocation(program.programID, "modelMat");
 
     mat4 rotMat = rotate(rotAngle, glm::vec3(0, 1, 0));
    // glUniformMatrix4fv(loc, 1, 0, value_ptr(rotMat));
