@@ -12,6 +12,9 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+using namespace glm;
+using namespace std;
+
 GLuint vertexArray = 0;
 GLuint triBuffer = 0;
 GLuint vao = 0;
@@ -23,13 +26,16 @@ float cameraYaw = 0.f;
 float cameraPitch = 0.f;
 int lastX = 0, lastY = 0;
 float cameraFov = 60.f;
-
+vec3 lightColor = vec3(1, 1, 1);
+vec3 ambientLightColor = vec3(0.1, 0.09, 0.03);
+vec4 diffusecolor = vec4(0.45, 1, 0.7, 1);
+vec3 lightPos = vec3(3, 3, 3);
+float shineness = 10;
+vec4 specularMaterial = vec4(1);
 
 
 Program program;
 
-using namespace glm;
-using namespace std;
 
 void render(GLFWwindow* window);
 void init();
