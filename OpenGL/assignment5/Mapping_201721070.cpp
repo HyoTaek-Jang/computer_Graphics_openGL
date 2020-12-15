@@ -184,16 +184,16 @@ void render(GLFWwindow* window) {
     loc = glGetUniformLocation(program.programID, "ambientLightColor");
     glUniform3fv(loc, 1, value_ptr(ambientLightColor));
 
-    glActiveTexture(GL_TEXTURE0 + 1);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffTexID);
     loc = glGetUniformLocation(program.programID, "diffTex");
-    glUniform1i(loc, 1);
+    glUniform1i(loc, 0);
 
 
-    glActiveTexture(GL_TEXTURE0 + 2);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, bumpTexID);
     loc = glGetUniformLocation(program.programID, "bumpTex");
-    glUniform1i(loc, 2);
+    glUniform1i(loc, 1);
 
     glBindVertexArray(vertexArray);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArray);

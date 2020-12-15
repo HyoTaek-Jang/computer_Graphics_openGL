@@ -156,12 +156,6 @@ void render(GLFWwindow* window) {
     mat4 viewMat = lookAt(cameraPosition, sceneCenter, vec3(0, 1, 0));
     glUniformMatrix4fv(loc, 1, 0, value_ptr(viewMat));
 
-    vec3 lightColor = vec3(1, 1, 1);
-    vec3 ambientLightColor = vec3(0.1, 0.09, 0.03);
-    vec4 diffusecolor = vec4(0.45, 1, 0.7, 1);
-    vec3 lightPos = vec3(3, 3, 3);
-    float shineness = 10;
-    vec4 specularMaterial = vec4(1);
 
     loc = glGetUniformLocation(program.programID, "cameraPos");
     glUniform3fv(loc, 1, value_ptr(cameraPosition));
