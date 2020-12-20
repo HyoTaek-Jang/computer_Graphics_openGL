@@ -13,6 +13,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+
+
 using namespace glm;
 using namespace std;
 
@@ -24,6 +26,9 @@ GLuint normalVBO = 0;
 GLuint texCoordVBO = 0;
 GLuint diffTexID = 0;
 GLuint bumpTexID = 0;
+GLuint shadowTex = 0;
+GLuint shadowDepth = 0;
+GLuint shadowFBO = 0;
 float cameraDistance = 5;
 glm::vec3 sceneCenter = glm::vec3(0, 0, 0);
 float cameraYaw = 0.f;
@@ -39,7 +44,7 @@ vec4 specularMaterial = vec4(1);
 
 
 Program program;
-
+Program shadowProgram;
 
 void render(GLFWwindow* window);
 void init();
@@ -74,6 +79,7 @@ void init() {
 
     loadJ3A("Trex_m.j3a");
     program.loadShaders("shader.vert", "shader.frag");
+    shadowProgram.loadShaders("shadow.vert", "shadow.frag");
 
     int texWidth, texHeight, texChannels;
     void* buffer = stbi_load(diffuseMap[0].c_str(), &texWidth, &texHeight, &texChannels, 4);
@@ -133,19 +139,69 @@ void init() {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_FRAMEBUFFER_SRGB); //SRGB로 보여줘!
+
+    glGenTextures(1, &shadowTex);
+    glBindTexture(GL_TEXTURE_2D, shadowTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 1024, 1024, 0, GL_RGB, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glGenTextures(1, &shadowDepth);
+    glBindTexture(GL_TEXTURE_2D, shadowDepth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glGenFramebuffers(1, &shadowFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadowTex, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowDepth, 0);
+    GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, drawBuffers);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) printf("FBO Error\n");
+    glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+
 }
 
 
 void render(GLFWwindow* window) {
     int w, h;
+    GLuint loc = 0;
+    mat4 modelMat = mat4(1);
+
+
+    // shadow map rendering
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glViewport(0, 0, 1024, 1024);
+    glClearColor(1, 1, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shadowProgram.programID);
+    mat4 shadowProjMat = ortho(-2.f, 2.f, -2.f, 2.f, 0.01f, 10.f);
+    mat4 shadowViewMat = lookAt(lightPos, vec3(0, 0, 0), vec3(0, 1, 0));
+    mat4 shadowMVP = shadowProjMat * shadowViewMat * modelMat;
+    loc = glGetUniformLocation(shadowProgram.programID, "shadowMVP");
+    glUniformMatrix4fv(loc, 1, 0, value_ptr(shadowMVP));
+
+    glBindVertexArray(vertexArray);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArray);
+    glDrawElements(GL_TRIANGLES, nTriangles[0] * 3, GL_UNSIGNED_INT, 0);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+// end
+
     glfwGetFramebufferSize(window, &w, &h);
     glViewport(0, 0, w, h);
     glClearColor(0, 0, 0.5, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
     glUseProgram(program.programID);
 
-    GLuint loc = glGetUniformLocation(program.programID, "projMat");
+    loc = glGetUniformLocation(program.programID, "projMat");
     mat4 projMat = perspective(cameraFov * 3.141592f / 180, w / float(h), 0.01f, 100.f);
     glUniformMatrix4fv(loc, 1, 0, value_ptr(projMat));
 
@@ -172,6 +228,12 @@ void render(GLFWwindow* window) {
     loc = glGetUniformLocation(program.programID, "lightColor");
     glUniform3fv(loc, 1, value_ptr(lightColor));
 
+    mat4 shadowBias = translate(vec3(0.5)) * scale(vec3(0.5));
+    mat4 shadowBiasMVP = shadowBias * shadowMVP;
+
+    loc = glGetUniformLocation(program.programID, "shadowBiasMVP");
+    glUniformMatrix4fv(loc, 1, 0, value_ptr(shadowBiasMVP));
+
     loc = glGetUniformLocation(program.programID, "specularMaterial");
     glUniform4fv(loc, 1, value_ptr(specularMaterial));
 
@@ -192,6 +254,9 @@ void render(GLFWwindow* window) {
     glBindVertexArray(vertexArray);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArray);
     glDrawElements(GL_TRIANGLES, nTriangles[0] * 3, GL_UNSIGNED_INT, 0);
+
+    
+
     glfwSwapBuffers(window);
 
 }
