@@ -12,13 +12,15 @@ uniform vec4 specularMaterial;
 
 uniform sampler2D diffTex;
 uniform sampler2D bumpTex;
-
+uniform sampler2D shadowMap;
 
 in vec3 normal;
 in vec3 worldPos_frag;
 in vec2 texCoord;
+in vec4 shadowCoord;
 
 out vec4 out_Color;
+
 
 mat3 getTBN( vec3 N ) {
     vec3 Q1 = dFdx(worldPos_frag), Q2 = dFdy(worldPos_frag);
@@ -54,10 +56,25 @@ void main(void) {
 
     vec3 lighting = vec3(0);
 
-    lighting += diffuseTexMaterial.rgb * diffuseFactor * lightColor;
-    lighting += specularMaterial.rgb * specularColor*lightColor;
+    float visibility = 1.;
+    vec3 sCoord = shadowCoord.xyz/shadowCoord.w;
+
+    float bias = 0.005;
+
+    if(texture(shadowMap, sCoord.xy).r < sCoord.z-bias) visibility = 0;
+
+
+    vec3 lColor = lightColor*visibility;
+
+    lighting += diffuseTexMaterial.rgb * diffuseFactor * lColor;
+    lighting += specularMaterial.rgb * specularColor*lColor;
     lighting += diffuseTexMaterial.rgb * ambientLightColor;
 
     out_Color = vec4(lighting,diffusecolor.a);
+
+
+
+
+
 
 }

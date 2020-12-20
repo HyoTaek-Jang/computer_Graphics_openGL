@@ -78,7 +78,7 @@ int main()
 
 void init() {
 
-    loadJ3A("Trex_m.j3a");
+    loadJ3A("dwarf.j3a");
     program.loadShaders("shader.vert", "shader.frag");
     shadowProgram.loadShaders("shadow.vert", "shadow.frag");
 
@@ -139,9 +139,6 @@ void init() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArray);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, nTriangles[0] * sizeof(glm::u32vec3), triangles[0], GL_STATIC_DRAW);
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_FRAMEBUFFER_SRGB); //SRGB로 보여줘!
-
     glGenTextures(1, &shadowTex);
     glBindTexture(GL_TEXTURE_2D, shadowTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 1024, 1024, 0, GL_RGB, GL_FLOAT, 0);
@@ -166,6 +163,10 @@ void init() {
     glDrawBuffers(1, drawBuffers);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) printf("FBO Error\n");
     glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_FRAMEBUFFER_SRGB); //SRGB로 보여줘!
+
 
 
 }
@@ -198,7 +199,6 @@ void render(GLFWwindow* window) {
     glViewport(0, 0, w, h);
     glClearColor(0, 0, 0.5, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     
     glUseProgram(program.programID);
@@ -234,12 +234,12 @@ void render(GLFWwindow* window) {
 
     loc = glGetUniformLocation(program.programID, "lightColor");
     glUniform3fv(loc, 1, value_ptr(lightColor));
-/*
+
     mat4 shadowBias = translate(vec3(0.5)) * scale(vec3(0.5));
     mat4 shadowBiasMVP = shadowBias * shadowMVP;
     loc = glGetUniformLocation(program.programID, "shadowBiasMVP");
     glUniformMatrix4fv(loc, 1, 0, value_ptr(shadowBiasMVP));
-    */
+    
     loc = glGetUniformLocation(program.programID, "specularMaterial");
     glUniform4fv(loc, 1, value_ptr(specularMaterial));
 
