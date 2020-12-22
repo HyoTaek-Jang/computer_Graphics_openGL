@@ -1,4 +1,4 @@
-//201721070 장효택 컴퓨터그래픽스 과제 5. Texture Mapping + Bump Mapping
+//201721070 장효택 컴퓨터그래픽스 과제 6. Shadow Mapping
 
 
 #version 410 core

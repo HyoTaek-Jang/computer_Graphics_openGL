@@ -1,5 +1,4 @@
-﻿//201721070 장효택 컴퓨터그래픽스 과제 5. Texture Mapping + Bump Mapping
-
+﻿//201721070 장효택 컴퓨터그래픽스 과제 6. Shadow Mapping
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -251,11 +250,15 @@ void render(GLFWwindow* window) {
     loc = glGetUniformLocation(program.programID, "diffTex");
     glUniform1i(loc, 0);
 
-
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, bumpTexID);
     loc = glGetUniformLocation(program.programID, "bumpTex");
     glUniform1i(loc, 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, shadowDepth);
+    loc = glGetUniformLocation(program.programID, "shadowMap");
+    glUniform1i(loc, 2);
 
     glBindVertexArray(vertexArray);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArray);
