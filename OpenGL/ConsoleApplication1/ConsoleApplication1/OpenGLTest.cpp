@@ -77,7 +77,7 @@ int main()
 
 void init() {
 
-    loadJ3A("dwarf.j3a");
+    loadJ3A("Trex.j3a");
     program.loadShaders("shader.vert", "shader.frag");
     shadowProgram.loadShaders("shadow.vert", "shadow.frag");
 
@@ -198,7 +198,6 @@ void render(GLFWwindow* window) {
     glViewport(0, 0, w, h);
     glClearColor(0, 0, 0.5, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     
     glUseProgram(program.programID);
     loc = glGetUniformLocation(program.programID, "projMat");

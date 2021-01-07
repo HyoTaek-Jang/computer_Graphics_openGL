@@ -97,7 +97,6 @@ void main(void) {
 
     float bias = 0.005;
 
-
     for (int i=0;i<64;i++){
     if ( texture( shadowMap, sCoord.xy + poissonDisk64[i]/600.0 ).r < sCoord.z-bias )
         visibility-=1./64.;
